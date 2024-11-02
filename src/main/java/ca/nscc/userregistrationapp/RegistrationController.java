@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-// Registration Model
+import java.util.regex.Pattern;
+
 @Controller
 public class RegistrationController {
 
@@ -18,41 +19,39 @@ public class RegistrationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private static final Pattern PASSWORD_PATTERN =
+            Pattern.compile("^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
+
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
         model.addAttribute("user", new User());
         return "register";
     }
 
-    // Register Mapping
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("user") User user, Model model) {
         try {
-            // Validate user input
+            // Validate input fields
             if (user.getUsername() == null || user.getEmail() == null || user.getPassword() == null) {
                 throw new IllegalArgumentException("All fields are required.");
             }
 
-            // Check for existing user
+            // Validate password strength
+            if (!PASSWORD_PATTERN.matcher(user.getPassword()).matches()) {
+                throw new IllegalArgumentException("Password must be at least 8 characters long, with at least one letter, one number, and one special character.");
+            }
+
+            // Check if the user already exists
             if (userService.existsByUsername(user.getUsername()) || userService.existsByEmail(user.getEmail())) {
                 throw new IllegalArgumentException("Username or Email already exists.");
             }
 
-            // Hash the password
-            String hashedPassword = passwordEncoder.encode(user.getPassword());
-            user.setPassword(hashedPassword); // Set the hashed password
-
-            // Register the user
+            // Hash the password and register the user
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             User registeredUser = userService.registerUser(user.getUsername(), user.getEmail(), user.getPassword());
 
-            // Add user details and success message to the model
             model.addAttribute("registeredUser", registeredUser);
-            model.addAttribute("username", registeredUser.getUsername());
-            model.addAttribute("email", registeredUser.getEmail());
             model.addAttribute("successMessage", "Registration successful!");
-            model.addAttribute("message", "Welcome, " + registeredUser.getUsername() + "!");
-
-            // Return to the success page
             return "registrationsuccess";
 
         } catch (IllegalArgumentException e) {
@@ -64,3 +63,4 @@ public class RegistrationController {
         }
     }
 }
+

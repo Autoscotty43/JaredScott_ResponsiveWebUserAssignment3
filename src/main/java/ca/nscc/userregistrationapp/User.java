@@ -1,64 +1,70 @@
 package ca.nscc.userregistrationapp;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-// Sates user
+// Represents a user in the system
 @Entity
-@Table(name = "users")
+@Table(name = "jareds_user_login")
 public class User {
-// Generates User
+
+    // Unique identifier for the user
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Unique username with constraints
+    @NotBlank(message = "Username is required")
+    @Size(min = 4, max = 20, message = "Username must be between 4 and 20 characters")
     @Column(nullable = false, unique = true)
     private String username;
 
+    // Unique email with constraints
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
     @Column(nullable = false, unique = true)
     private String email;
 
+    // Password with constraints
+    @NotBlank(message = "Password is required")
     @Column(nullable = false)
     private String password;
 
     // Default constructor
     public User() {}
 
-    // Getter for the user ID
+    // Getters and Setters
     public Long getId() {
         return id;
     }
 
-    // Setter for the username
     public void setUsername(String username) {
         this.username = username;
     }
 
-    // Setter for the email
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    // Setter for the password
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    // Getter for the username
     public String getUsername() {
         return username;
     }
 
-    // Getter for the email
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getEmail() {
         return email;
     }
 
-    // Getter for the password
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getPassword() {
         return password;
     }
 
-    // Override toString method User objects
+    // Override toString method
     @Override
     public String toString() {
         return "User{" +
@@ -68,24 +74,22 @@ public class User {
                 '}';
     }
 
-    // Override equals method to compare id, username, and email
+    // Override equals method
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true; // Check if the same object
-        if (!(o instanceof User)) return false; // Check object of User type
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
 
         User user = (User) o;
-
-        // Check for id, username, and email
-        if (!id.equals(user.id)) return false;
-        if (!username.equals(user.username)) return false;
-        return email.equals(user.email);
+        return (id != null && id.equals(user.id)) &&
+                username.equals(user.username) &&
+                email.equals(user.email);
     }
 
     // Override hashCode method
     @Override
     public int hashCode() {
-        int result = id.hashCode();
+        int result = id != null ? id.hashCode() : 0;
         result = 31 * result + username.hashCode();
         result = 31 * result + email.hashCode();
         return result;
